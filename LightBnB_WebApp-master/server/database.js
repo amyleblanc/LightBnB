@@ -1,5 +1,4 @@
 const { Pool } = require('pg');
-const { Querystring } = require('request/lib/querystring');
 
 const pool = new Pool({
   user: 'labber',
@@ -7,9 +6,6 @@ const pool = new Pool({
   host: 'localhost',
   database: 'lightbnb'
 });
-
-const properties = require('./json/properties.json');
-const users = require('./json/users.json');
 
 /// Users
 
@@ -152,8 +148,6 @@ const getAllProperties = (options, limit = 10) => {
   queryString += `
   LIMIT $${queryParams.length}
   `;
-
-  console.log(queryString, queryParams);
 
   return pool.query(queryString, queryParams)
     .then((res) => {
