@@ -18,11 +18,7 @@ const getUserWithEmail = function(email) {
   const query = `SELECT * FROM users WHERE email = $1`;
   return pool.query(query, [email])
     .then(res => {
-      return res.rows;
-    })
-    .then(res => {
-      const user = res[0];
-      return user;
+      return res.rows[0];
     });
 };
 exports.getUserWithEmail = getUserWithEmail;
@@ -36,11 +32,7 @@ const getUserWithId = function(id) {
   const query = `SELECT * FROM users WHERE id = $1`;
   return pool.query(query, [id])
     .then(res => {
-      return res.rows;
-    })
-    .then(res => {
-      const user = res[0];
-      return user;
+      return res.rows[0];
     });
 };
 exports.getUserWithId = getUserWithId;
@@ -165,7 +157,8 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const queryParams = [property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url, property.cost_per_night, property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms, property.country, property.street, property.city, property.province, property.post_code, 'TRUE', property.owner_id];
+  const { title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, parking_spaces, number_of_bathrooms, number_of_bedrooms, country, street, city, province, post_code, owner_id } = property;
+  const queryParams = [title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, parking_spaces, number_of_bathrooms, number_of_bedrooms, country, street, city, province, post_code, 'TRUE', owner_id];
   const queryString = `
   INSERT INTO properties (title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, parking_spaces, number_of_bathrooms, number_of_bedrooms, country, street, city, province, post_code, active, owner_id)
   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
