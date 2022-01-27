@@ -45,7 +45,7 @@ const getUserWithId = function(id) {
     .then(res => {
       const user = res[0];
       return user;
-    });  
+    });
 };
 exports.getUserWithId = getUserWithId;
 
@@ -96,15 +96,68 @@ exports.getAllReservations = getAllReservations;
 /// Properties
 
 /**
- * 
+ *
  * @param {{}} options An object containing query options.
  * @param {*} limit The number of results to return.
  */
- const getAllProperties = (options, limit = 10) => {
-  return pool
-    .query(`SELECT * FROM properties LIMIT $1`, [limit])
-    .then((result) => {
-      return result.rows;
+const getAllProperties = (options, limit = 10) => {
+  const queryParams = [];
+  let queryString = `
+  SELECT properties.*, avg(property_reviews.rating) as average_rating
+  FROM properties
+  JOIN property_reviews ON properties.id = property_id
+  WHERE TRUE
+  `;
+
+  if (options.city) {
+    queryParams.push(`%${options.city}%`);
+    const length = queryParams.length;
+    queryString += ` AND city LIKE $${length}`;
+  }
+
+  if (options.owner_id) {
+    queryParams.push(`${options.owner_id}`);
+    const length = queryParams.length;
+    queryString += ` AND owner_id = $${length}`;
+  }
+
+  if (options.minimum_price_per_night) {
+    queryParams.push(`${options.minimum_price_per_night}`);
+    const length = queryParams.length;
+    queryString += ` AND cost_per_night >= $${length}`;
+  }
+
+  if (options.maximum_price_per_night) {
+    queryParams.push(`${options.maximum_price_per_night}`);
+    const length = queryParams.length;
+    queryString += ` AND cost_per_night <= $${length}`;
+  }
+
+  if (options.minimum_rating) {
+    queryParams.push(`${options.minimum_rating}`, limit);
+    const length = queryParams.length;
+    queryString += ` 
+    GROUP BY properties.id
+    HAVING avg(property_reviews.rating) >= $${length - 1}
+    ORDER BY cost_per_night
+    `;
+  } else {
+    queryParams.push(limit);
+    queryString += `
+    GROUP BY properties.id
+    ORDER BY cost_per_night
+    `;
+  }
+
+  queryString += `
+  LIMIT $${queryParams.length}
+  `;
+
+  console.log(queryString, queryParams);
+
+  return pool.query(queryString, queryParams)
+    .then((res) => {
+      return res.rows;
     })
     .catch((err) => {
       console.log(err.message);
@@ -122,5 +175,5 @@ const addProperty = function(property) {
   property.id = propertyId;
   properties[propertyId] = property;
   return Promise.resolve(property);
-}
+};
 exports.addProperty = addProperty;
