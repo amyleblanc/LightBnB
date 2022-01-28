@@ -39,19 +39,19 @@ exports.getUserWithId = getUserWithId;
 
 /**
  * Add a new user to the database.
- * @param {{name: string, password: string, email: string}} user
+ * @param {{name: string, email: string, password: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser =  function(user) {
+  const { name, email, password } = user;
   const query = `
   INSERT INTO users (name, email, password)
   VALUES ($1, $2, $3)
   RETURNING *
   `;
-  return pool.query(query, [user.name, user.email, user.password])
+  return pool.query(query, [name, email, password])
     .then(res => {
-      const user = res.rows[0];
-      return user;
+      return res.rows[0];
     });
 };
 exports.addUser = addUser;
